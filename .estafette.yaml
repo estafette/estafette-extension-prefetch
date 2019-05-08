@@ -56,7 +56,6 @@ stages:
     channels:
     - '#build-status'
     when:
-      status == 'succeeded' ||
       status == 'failed'
 
 releases:
