@@ -58,6 +58,10 @@ func main() {
 		}
 	}
 
+	if len(stages) == 0 {
+		log.Fatal("No stages in present in environment variable ESTAFETTE_STAGES")
+	}
+
 	prefetchStart := time.Now()
 
 	// deduplicate stages by image path
