@@ -27,11 +27,9 @@ stages:
     action: build
     container: prefetch
     inline: |
-      FROM alpine:3.9
+      FROM scratch
 
       LABEL maintainer="estafette.io"
-
-      RUN addgroup docker
 
       COPY ${ESTAFETTE_GIT_NAME} /
 
