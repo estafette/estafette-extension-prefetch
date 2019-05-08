@@ -86,11 +86,13 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(len(dedupedStages))
 
+	// login
+	loginIfRequired(credentials, dedupedStages...)
+
 	// pull all images in parallel
 	for _, p := range dedupedStages {
 		go func(p manifest.EstafetteStage) {
 			defer wg.Done()
-			loginIfRequired(credentials, p.ContainerImage)
 			log.Printf("Pulling container image %v\n", p.ContainerImage)
 			pullArgs := []string{
 				"pull",
@@ -164,14 +166,19 @@ func getFromImagePathsFromDockerfile(dockerfileContent []byte) ([]string, error)
 	return containerImages, nil
 }
 
-func loginIfRequired(credentials []ContainerRegistryCredentials, containerImages ...string) {
+func loginIfRequired(credentials []ContainerRegistryCredentials, stages ...*manifest.EstafetteStage) {
 
-	// log.Printf("Filtering credentials for images %v\n", containerImages)
+	containerImages := []string{}
+	for _, s := range stages {
+		containerImages = append(containerImages, s.ContainerImage)
+	}
+
+	log.Printf("Filtering credentials for images %v\n", containerImages)
 
 	// retrieve all credentials
 	filteredCredentialsMap := getCredentialsForContainers(credentials, containerImages)
 
-	// log.Printf("Filtered %v container-registry credentials down to %v\n", len(credentials), len(filteredCredentialsMap))
+	log.Printf("Filtered %v container-registry credentials down to %v\n", len(credentials), len(filteredCredentialsMap))
 
 	if filteredCredentialsMap != nil {
 		for _, c := range filteredCredentialsMap {
