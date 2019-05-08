@@ -62,6 +62,9 @@ stages:
 releases:
   beta:
     stages:
+      test:
+        image: extensions/prefetch:${ESTAFETTE_BUILD_VERSION}
+
       tag-container-image:
         image: extensions/docker:stable
         action: tag
