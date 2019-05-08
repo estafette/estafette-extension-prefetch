@@ -24,8 +24,8 @@ var (
 )
 
 var (
-	credentialsJSON = kingpin.Flag("credentials", "Container registry credentials configured at the CI server, passed in to this trusted extension.").Envar("ESTAFETTE_CREDENTIALS_CONTAINER_REGISTRY").String()
-	stagesJSON      = kingpin.Flag("stages", "Executed stages, to determine what images to prefetch.").Envar("ESTAFETTE_STAGES").String()
+	credentialsJSON = kingpin.Flag("credentials", "Container registry credentials configured at the CI server, passed in to this trusted extension.").Envar("ESTAFETTE_CREDENTIALS_CONTAINER_REGISTRY").Required().String()
+	stagesJSON      = kingpin.Flag("stages", "Executed stages, to determine what images to prefetch.").Envar("ESTAFETTE_STAGES").Required().String()
 )
 
 func main() {
