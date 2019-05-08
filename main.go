@@ -96,7 +96,7 @@ func main() {
 				"pull",
 				p.ContainerImage,
 			}
-			runCommand("docker", pullArgs)
+			runCommandExtended("docker", pullArgs)
 		}(*p)
 	}
 
@@ -166,12 +166,12 @@ func getFromImagePathsFromDockerfile(dockerfileContent []byte) ([]string, error)
 
 func loginIfRequired(credentials []ContainerRegistryCredentials, containerImages ...string) {
 
-	log.Printf("Filtering credentials for images %v\n", containerImages)
+	// log.Printf("Filtering credentials for images %v\n", containerImages)
 
 	// retrieve all credentials
 	filteredCredentialsMap := getCredentialsForContainers(credentials, containerImages)
 
-	log.Printf("Filtered %v container-registry credentials down to %v\n", len(credentials), len(filteredCredentialsMap))
+	// log.Printf("Filtered %v container-registry credentials down to %v\n", len(credentials), len(filteredCredentialsMap))
 
 	if filteredCredentialsMap != nil {
 		for _, c := range filteredCredentialsMap {
