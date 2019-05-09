@@ -106,7 +106,7 @@ func main() {
 				"pull",
 				p.ContainerImage,
 			}
-			runCommandExtended("/usr/local/bin/docker", pullArgs)
+			runCommandExtended("docker", pullArgs)
 		}(*p)
 	}
 
@@ -206,7 +206,7 @@ func loginIfRequired(credentials []ContainerRegistryCredentials, stages ...*mani
 					loginArgs = append(loginArgs, server)
 				}
 
-				err := exec.Command("/usr/local/bin/docker", loginArgs...).Run()
+				err := exec.Command("docker", loginArgs...).Run()
 				handleError(err)
 			}
 		}
