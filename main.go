@@ -47,7 +47,7 @@ func main() {
 	if *credentialsJSON != "" {
 		err := json.Unmarshal([]byte(*credentialsJSON), &credentials)
 		if err != nil {
-			log.Fatal("Failed unmarshalling injected credentials: ", err)
+			log.Printf("Failed unmarshalling injected credentials: %v", err)
 		}
 	}
 
@@ -56,12 +56,12 @@ func main() {
 	if *stagesJSON != "" {
 		err := json.Unmarshal([]byte(*stagesJSON), &stages)
 		if err != nil {
-			log.Fatal("Failed unmarshalling injected stages: ", err)
+			log.Printf("Failed unmarshalling injected stages: %v", err)
 		}
 	}
 
 	if len(stages) == 0 {
-		log.Fatal("No stages in present in environment variable ESTAFETTE_STAGES")
+		log.Printf("No stages in present in environment variable ESTAFETTE_STAGES")
 	}
 
 	prefetchStart := time.Now()
@@ -215,7 +215,7 @@ func loginIfRequired(credentials []ContainerRegistryCredentials, stages ...*mani
 
 func handleError(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 }
 
