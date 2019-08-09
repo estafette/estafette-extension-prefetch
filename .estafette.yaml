@@ -49,8 +49,6 @@ stages:
     container: prefetch
     repositories:
     - extensions
-    tags:
-    - dev
 
   slack-notify:
     image: extensions/slack-build-status:dev
@@ -61,11 +59,26 @@ stages:
       status == 'failed'
 
 releases:
-  beta:
+  dev:
+    triggers:
+    - pipeline:
+        name: self
+        branch: .+
     stages:
       test:
         image: extensions/prefetch:${ESTAFETTE_BUILD_VERSION}
 
+      tag-container-image:
+        image: extensions/docker:stable
+        action: tag
+        container: prefetch
+        repositories:
+        - extensions
+        tags:
+        - dev
+
+  beta:
+    stages:
       tag-container-image:
         image: extensions/docker:stable
         action: tag
