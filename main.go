@@ -15,6 +15,7 @@ import (
 	"github.com/Knetic/govaluate"
 	"github.com/alecthomas/kingpin"
 	manifest "github.com/estafette/estafette-ci-manifest"
+	foundation "github.com/estafette/estafette-foundation"
 )
 
 var (
