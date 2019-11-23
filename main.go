@@ -18,6 +18,8 @@ import (
 )
 
 var (
+	appgroup  string
+	app       string
 	version   string
 	branch    string
 	revision  string
@@ -35,9 +37,8 @@ func main() {
 	// parse command line parameters
 	kingpin.Parse()
 
-	// log to stdout and hide timestamp
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	// init log format from envvar ESTAFETTE_LOG_FORMAT
+	foundation.InitLoggingFromEnv(appgroup, app, version, branch, revision, buildDate)
 
 	// log startup message
 	log.Printf("Starting estafette-extension-prefetch version %v...", version)
