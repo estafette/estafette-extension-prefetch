@@ -108,7 +108,7 @@ func main() {
 				"pull",
 				p.ContainerImage,
 			}
-			runCommandExtended("docker", pullArgs)
+			foundation.RunCommandWithArgsExtended("docker", pullArgs)
 		}(*p)
 	}
 
@@ -209,31 +209,10 @@ func loginIfRequired(credentials []ContainerRegistryCredentials, stages ...*mani
 				}
 
 				err := exec.Command("docker", loginArgs...).Run()
-				handleError(err)
+				foundation.HandleError(err)
 			}
 		}
 	}
-}
-
-func handleError(err error) {
-	if err != nil {
-		log.Print(err)
-	}
-}
-
-func runCommand(command string, args []string) {
-	err := runCommandExtended(command, args)
-	handleError(err)
-}
-
-func runCommandExtended(command string, args []string) error {
-	log.Printf("Running command '%v %v'...", command, strings.Join(args, " "))
-	cmd := exec.Command(command, args...)
-	cmd.Dir = "/estafette-work"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	return err
 }
 
 func evaluateWhen(pipelineName, input string, parameters map[string]interface{}) (result bool, err error) {
