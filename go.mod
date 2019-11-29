@@ -6,5 +6,6 @@ require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/estafette/estafette-ci-manifest v0.1.100
-	github.com/estafette/estafette-foundation v0.0.33
+	github.com/estafette/estafette-foundation v0.0.37
+	github.com/rs/zerolog v1.17.2
 )

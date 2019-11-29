@@ -1,11 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
-	"os/exec"
 	"regexp"
 	"runtime"
 	"strings"
@@ -16,6 +15,7 @@ import (
 	"github.com/alecthomas/kingpin"
 	manifest "github.com/estafette/estafette-ci-manifest"
 	foundation "github.com/estafette/estafette-foundation"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -41,15 +41,18 @@ func main() {
 	// init log format from envvar ESTAFETTE_LOG_FORMAT
 	foundation.InitLoggingFromEnv(appgroup, app, version, branch, revision, buildDate)
 
+	// create context to cancel commands on sigterm
+	ctx := foundation.InitCancellationContext(context.Background())
+
 	// log startup message
-	log.Printf("Starting estafette-extension-prefetch version %v...", version)
+	log.Info().Msgf("Starting estafette-extension-prefetch version %v...", version)
 
 	// get api token from injected credentials
 	var credentials []ContainerRegistryCredentials
 	if *credentialsJSON != "" {
 		err := json.Unmarshal([]byte(*credentialsJSON), &credentials)
 		if err != nil {
-			log.Printf("Failed unmarshalling injected credentials: %v", err)
+			log.Info().Msgf("Failed unmarshalling injected credentials: %v", err)
 		}
 	}
 
@@ -58,12 +61,12 @@ func main() {
 	if *stagesJSON != "" {
 		err := json.Unmarshal([]byte(*stagesJSON), &stages)
 		if err != nil {
-			log.Printf("Failed unmarshalling injected stages: %v", err)
+			log.Info().Msgf("Failed unmarshalling injected stages: %v", err)
 		}
 	}
 
 	if len(stages) == 0 {
-		log.Printf("No stages in present in environment variable ESTAFETTE_STAGES")
+		log.Info().Msg("No stages in present in environment variable ESTAFETTE_STAGES")
 	}
 
 	prefetchStart := time.Now()
@@ -97,18 +100,18 @@ func main() {
 	wg.Add(len(dedupedStages))
 
 	// login
-	loginIfRequired(credentials, dedupedStages...)
+	loginIfRequired(ctx, credentials, dedupedStages...)
 
 	// pull all images in parallel
 	for _, p := range dedupedStages {
 		go func(p manifest.EstafetteStage) {
 			defer wg.Done()
-			log.Printf("Pulling container image %v\n", p.ContainerImage)
+			log.Info().Msgf("Pulling container image %v\n", p.ContainerImage)
 			pullArgs := []string{
 				"pull",
 				p.ContainerImage,
 			}
-			foundation.RunCommandWithArgsExtended("docker", pullArgs)
+			foundation.RunCommandWithArgsExtended(ctx, "docker", pullArgs)
 		}(*p)
 	}
 
@@ -116,7 +119,7 @@ func main() {
 	wg.Wait()
 	prefetchDuration := time.Since(prefetchStart)
 
-	log.Printf("Done prefetching %v images in %v seconds", len(dedupedStages), prefetchDuration.Seconds())
+	log.Info().Msgf("Done prefetching %v images in %v seconds", len(dedupedStages), prefetchDuration.Seconds())
 }
 
 func getCredentialsForContainers(credentials []ContainerRegistryCredentials, containerImages []string) map[string]*ContainerRegistryCredentials {
@@ -176,24 +179,24 @@ func getFromImagePathsFromDockerfile(dockerfileContent []byte) ([]string, error)
 	return containerImages, nil
 }
 
-func loginIfRequired(credentials []ContainerRegistryCredentials, stages ...*manifest.EstafetteStage) {
+func loginIfRequired(ctx context.Context, credentials []ContainerRegistryCredentials, stages ...*manifest.EstafetteStage) {
 
 	containerImages := []string{}
 	for _, s := range stages {
 		containerImages = append(containerImages, s.ContainerImage)
 	}
 
-	log.Printf("Filtering credentials for images %v\n", containerImages)
+	log.Info().Msgf("Filtering credentials for images %v\n", containerImages)
 
 	// retrieve all credentials
 	filteredCredentialsMap := getCredentialsForContainers(credentials, containerImages)
 
-	log.Printf("Filtered %v container-registry credentials down to %v\n", len(credentials), len(filteredCredentialsMap))
+	log.Info().Msgf("Filtered %v container-registry credentials down to %v\n", len(credentials), len(filteredCredentialsMap))
 
 	if filteredCredentialsMap != nil {
 		for _, c := range filteredCredentialsMap {
 			if c != nil {
-				log.Printf("Logging in to repository '%v'\n", c.AdditionalProperties.Repository)
+				log.Info().Msgf("Logging in to repository '%v'\n", c.AdditionalProperties.Repository)
 				loginArgs := []string{
 					"login",
 					"--username",
@@ -208,7 +211,7 @@ func loginIfRequired(credentials []ContainerRegistryCredentials, stages ...*mani
 					loginArgs = append(loginArgs, server)
 				}
 
-				err := exec.Command("docker", loginArgs...).Run()
+				err := foundation.RunCommandWithArgsExtended(ctx, "docker", loginArgs)
 				foundation.HandleError(err)
 			}
 		}
